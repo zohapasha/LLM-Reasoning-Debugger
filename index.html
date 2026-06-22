@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LLM Reasoning Debugger</title>
+<style>
+  :root {
+    --bg: #030712;                
+    --panel: #0b1329;              
+    --panel-border: #1c2541;       
+    --text: #f8fafc;              
+    --text-dim: #94a3b8;           
+    --accent: #38bdf8;             
+    --good: #10b981;               
+    --warn: #f59e0b;               
+    --bad: #ef4444;                
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    max-width: 940px;
+    margin: 48px auto;
+    padding: 0 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1 {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin: 0 0 6px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 0 0 32px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 12px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    padding: 6px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  input[type=text] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    padding: 12px 16px;
+    outline: none;
+  }
+  input[type=text]::placeholder { color: #475569; }
+
+  button {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 0 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  button:hover { background: #e2e8f0; }
+  button:active { transform: scale(0.98); }
+
+  #loading {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #loading::before { 
+    content: " ";
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  #results { margin-top: 36px; }
+
+  .stat-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .stat {
+    flex: 1;
+    padding: 18px 20px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+  }
+  .stat .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.75px;
+    color: var(--text-dim);
+    margin: 0 0 8px;
+    font-weight: 500;
+  }
+  .stat .value {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-mono);
+  }
+
+  #summary-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 0 2px 32px;
+  }
+
+  .risk-panel {
+    border: 1px solid var(--panel-border);
+    border-left: 4px solid var(--text-dim);
+    border-radius: 8px;
+    background: var(--panel);
+    padding: 20px;
+    margin-bottom: 36px;
+  }
+  .risk-panel.low { border-left-color: var(--good); }
+  .risk-panel.moderate { border-left-color: var(--warn); }
+  .risk-panel.high { border-left-color: var(--bad); }
+
+  .risk-panel h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+  }
+  .risk-panel.low h3 { color: var(--good); }
+  .risk-panel.moderate h3 { color: var(--warn); }
+  .risk-panel.high h3 { color: var(--bad); }
+
+  .risk-panel p { margin: 0; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+  .risk-stats {
+    display: flex;
+    gap: 24px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin: 14px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .risk-stats b { color: var(--text); font-weight: 600; }
+
+  .risk-zone {
+    border: 1px solid var(--panel-border);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .risk-zone strong { color: var(--text); }
+  .risk-zone .zone-meta { font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); margin-top: 6px; }
+
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.75px;
+    color: var(--text-dim);
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+
+  .token-view {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 24px;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 2.2;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .tok { 
+    padding: 2px 4px; 
+    border-radius: 4px; 
+    cursor: help; 
+    position: relative;
+    transition: background 0.15s ease;
+  }
+  .tok:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  
+  .tok:hover .tooltip { display: block; }
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 140%;
+    left: 0;
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .legend code {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+  }
+</style>
+</head>
+<body>
+
+<h1>llm reasoning debugger</h1>
+<p class="subtitle">qwen2.5-1.5b-instruct</p>
+
+<div class="input-row">
+  <input type="text" id="question-input" placeholder="ask a question..." value="What is 17 times 4?">
+  <button id="ask-btn">Run</button>
+</div>
+
+<p id="loading" style="display:none;">generating - tracking per-token entropy and attention</p>
+
+<div id="results" style="display:none;">
+
+  <div class="stat-row">
+    <div class="stat">
+      <p class="label">Final answer</p>
+      <p class="value" id="answer-out">-</p>
+    </div>
+    <div class="stat">
+      <p class="label">Stated confidence</p>
+      <p class="value" id="confidence-out">-</p>
+    </div>
+    <div class="stat">
+      <p class="label">Actual internal confidence</p>
+      <p class="value" id="avg-confidence-out">-</p>
+    </div>
+  </div>
+  <p id="summary-label"></p>
+
+  <div class="risk-panel" id="risk-panel">
+    <h3 id="risk-title">hallucination_risk: -</h3>
+    <p id="risk-label"></p>
+    <div class="risk-stats">
+      <span>avg entropy <b id="avg-entropy-out">-</b> bits</span>
+      <span>peak window <b id="max-entropy-out">-</b> bits</span>
+      <span>flagged <b id="flagged-pct-out">-</b></span>
+    </div>
+    <div id="risk-zones-list"></div>
+  </div>
+
+  <p class="section-label">token trace (shaded by actual internal confidence)</p>
+  <div class="token-view" id="token-view"></div>
+  <div class="legend">
+    <span><code style="color:#10b981;">&gt;90%</code> confident</span>
+    <span><code style="color:#f59e0b;">60–90%</code> moderate</span>
+    <span><code style="color:#ef4444;">&lt;60%</code> uncertain</span>
+  </div>
+
+</div>
+
+<script>
+const askBtn = document.getElementById('ask-btn');
+const questionInput = document.getElementById('question-input');
+const loading = document.getElementById('loading');
+const results = document.getElementById('results');
+
+const answerOut = document.getElementById('answer-out');
+const confidenceOut = document.getElementById('confidence-out');
+const avgConfidenceOut = document.getElementById('avg-confidence-out');
+const summaryLabel = document.getElementById('summary-label');
+const tokenView = document.getElementById('token-view');
+
+const riskPanel = document.getElementById('risk-panel');
+const riskTitle = document.getElementById('risk-title');
+const riskLabel = document.getElementById('risk-label');
+const avgEntropyOut = document.getElementById('avg-entropy-out');
+const maxEntropyOut = document.getElementById('max-entropy-out');
+const flaggedPctOut = document.getElementById('flagged-pct-out');
+const riskZonesList = document.getElementById('risk-zones-list');
+
+function colorForProbability(p) {
+  if (p > 0.9) return '#10b981';
+  if (p > 0.6) return '#f59e0b';
+  return '#ef4444';
+}
+
+function renderTokens(tokenConfidences) {
+  tokenView.innerHTML = '';
+  tokenConfidences.forEach(tc => {
+    const span = document.createElement('span');
+    span.className = 'tok';
+    span.textContent = tc.token;
+    span.style.color = colorForProbability(tc.probability);
+    span.style.fontWeight = tc.probability < 0.6 ? '700' : '400';
+
+    const tooltip = document.createElement('span');
+    tooltip.className = 'tooltip';
+    const attendedLabel = tc.attended_to_prompt ? "the question" : "its own text";
+    const meaningfulPart = tc.top_attended_meaningful_token
+      ? ` | focus: "${tc.top_attended_meaningful_token.trim()}" ${(tc.top_attended_meaningful_score*100).toFixed(1)}%`
+      : '';
+    tooltip.textContent = `p=${(tc.probability*100).toFixed(1)}% entropy=${tc.entropy_bits.toFixed(2)}b runner-up="${tc.runner_up_token.trim()}" ${(tc.runner_up_probability*100).toFixed(1)}% attn="${tc.top_attended_token.trim()}" ${(tc.top_attended_score*100).toFixed(1)}% (${attendedLabel})${meaningfulPart}`;
+    span.appendChild(tooltip);
+    tokenView.appendChild(span);
+  });
+}
+
+function renderRiskPanel(risk) {
+  riskPanel.classList.remove('low', 'moderate', 'high');
+
+  let level = 'low';
+  if (risk.flagged_pct === 0) {
+    level = 'low';
+  } else if (risk.flagged_pct < 15) {
+    level = 'moderate';
+  } else {
+    level = 'high';
+  }
+  riskPanel.classList.add(level);
+  riskTitle.textContent = `hallucination_risk: ${level}`;
+
+  riskLabel.textContent = risk.overall_risk_label;
+  avgEntropyOut.textContent = risk.avg_entropy;
+  maxEntropyOut.textContent = risk.max_window_entropy;
+  flaggedPctOut.textContent = risk.flagged_pct + '% (' + risk.flagged_token_count + '/' + risk.total_tokens + ')';
+
+  riskZonesList.innerHTML = '';
+  if (risk.risk_zones && risk.risk_zones.length > 0) {
+    risk.risk_zones.forEach((zone, idx) => {
+      const div = document.createElement('div');
+      div.className = 'risk-zone';
+      div.innerHTML = `<strong>passage ${idx + 1}</strong> — "${zone.text}"
+        <div class="zone-meta">avg entropy ${zone.avg_entropy_bits}b · ${zone.token_count} tokens</div>`;
+      riskZonesList.appendChild(div);
+    });
+  }
+}
+
+askBtn.addEventListener('click', async () => {
+  const question = questionInput.value.trim();
+  if (!question) return;
+
+  loading.style.display = 'block';
+  results.style.display = 'none';
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: question })
+    });
+    const data = await response.json();
+
+    answerOut.textContent = data.final_answer ?? '(none found)';
+    confidenceOut.textContent = data.stated_confidence !== null ? data.stated_confidence + '%' : '(none found)';
+
+    if (data.confidence_summary) {
+      avgConfidenceOut.textContent = data.confidence_summary.average_confidence + '%';
+      summaryLabel.textContent = data.confidence_summary.label + ` (${data.confidence_summary.low_confidence_token_pct}% of tokens uncertain)`;
+    } else {
+      avgConfidenceOut.textContent = '-';
+      summaryLabel.textContent = '';
+    }
+
+    if (data.hallucination_risk) {
+      renderRiskPanel(data.hallucination_risk);
+    }
+
+    renderTokens(data.token_confidences);
+
+    loading.style.display = 'none';
+    results.style.display = 'block';
+  } catch (err) {
+    loading.textContent = 'error: could not reach backend at 127.0.0.1:8000';
+  }
+});
+</script>
+
+</body>
+</html>

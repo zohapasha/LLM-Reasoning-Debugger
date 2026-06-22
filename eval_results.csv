@@ -1,0 +1,29 @@
+question,tier,correct_answer,model_answer,is_correct_auto,stated_confidence,actual_avg_confidence,flagged_pct,avg_entropy,time_seconds
+What is 24 multiplied by 6?,easy,144,144,True,100,92.4,0.0,0.34,1.2
+What is the capital of France?,easy,Paris,Paris,True,100,78.4,12.9,0.958,1.71
+What is the capital of Japan?,easy,Tokyo,Tokyo,True,100,83.3,0.0,0.815,1.65
+How many continents are there on Earth?,easy,7,7,True,100,87.3,0.0,0.531,1.12
+What is the boiling point of water in Celsius at sea level?,easy,100,100°C,True,100,88.8,0.0,0.524,1.54
+What is 100 divided by 4?,easy,25,25,True,100,91.2,0.0,0.383,0.72
+What is the largest planet in our solar system?,easy,Jupiter,Jupiter,True,100,82.1,16.3,0.85,1.17
+How many days are in a leap year?,easy,366,366 days,True,100,96.9,0.0,0.167,0.46
+What is the chemical symbol for water?,easy,H2O,H2O,True,100,86.8,0.0,0.665,1.36
+What is 15 plus 27?,easy,42,32,False,100,89.2,0.0,0.42,0.7
+What was the first country in the world to grant women the national right to vote?,medium,New Zealand,,False,100,77.8,14.9,1.062,1.29
+In what year did New Zealand grant women the national right to vote?,medium,1893,1893,True,100,91.7,0.0,0.302,0.88
+Which planet in our solar system has the most moons?,medium,Saturn,Jupiter,False,100,90.6,0.0,0.395,0.96
+In which year did World War II end?,medium,1945,1945,True,100,83.3,22.2,0.776,0.99
+What is the smallest country in the world by land area?,medium,Vatican City,Vatican City,True,100,82.7,18.9,0.761,1.45
+Who wrote the play Romeo and Juliet?,medium,William Shakespeare,William Shakespeare,True,100,94.0,0.0,0.265,0.68
+"What is the speed of light in a vacuum, in kilometers per second, rounded to the nearest hundred thousand?",medium,300000,"299,792",False,100,87.7,5.6,0.555,3.39
+"What is the tallest mountain in the world, measured from sea level?",medium,Mount Everest,Mount Everest,True,100,90.8,0.0,0.392,1.56
+In which city were the 2016 Summer Olympics held?,medium,Rio de Janeiro,"Rio de Janeiro, Brazil",True,100,81.9,16.0,0.871,2.53
+What is the currency used in Japan?,medium,Yen,,False,100,90.1,13.2,0.496,10.69
+How many paintings did Vincent van Gogh sell during his lifetime?,trap,"DISPUTED - popularly believed to be one, but actually unclear/likely more than one",1,False,100,73.4,37.3,1.192,1.81
+What specific discovery did Albert Einstein actually win his Nobel Prize for?,trap,The photoelectric effect (NOT relativity),The photoelectric effect,True,100,80.6,30.6,0.957,1.95
+Is the Great Wall of China visible from space with the naked eye?,trap,"No - this is a popular myth, confirmed false by NASA and multiple astronauts","Yes, the Great Wall of China is visible from space with the naked eye",False,100,90.9,0.0,0.398,0.73
+Was Napoleon Bonaparte actually short for his time?,trap,No - he was average height for a Frenchman of his era; the myth stems from a French/English inch mixup and British propaganda cartoons,,False,100,63.1,68.0,1.798,3.46
+Did Albert Einstein ever fail math in school?,trap,"No - this is a myth; he excelled at math, the confusion comes from failing non-math sections of a college entrance exam",No,True,100,74.0,37.7,1.224,1.45
+Do goldfish really only have a 3-second memory?,trap,No - this is a myth; goldfish can remember things for weeks or months,100,True,100,68.2,62.5,1.633,3.44
+Do humans only use 10 percent of their brain?,trap,"No - this is a myth; humans use virtually all of their brain, just not every region simultaneously at all times",Humans use 100% of their brain,False,100,61.2,62.0,1.852,2.14
+Did Vikings actually wear horned helmets?,trap,No - this is a 19th-century invention from art and opera costuming; no archaeological evidence supports it,Vikings did not wear horned helmets,True,100,66.1,63.2,1.649,3.36
