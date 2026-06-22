@@ -37,8 +37,8 @@ The model's self-reported confidence is essentially uninformative. Its real inte
 
 - `backend.py` — FastAPI server that loads the model, runs generation with token-level entropy/attention extraction, and computes hallucination risk. Also exposes a `/judge` endpoint for semantic answer grading.
 - `index.html` — the frontend. Type a question, see the full breakdown rendered live.
-- `eval_runner.py` — runs the full 28-question benchmark against the backend and saves results to CSV/JSON.
-- `run_analysis.py` — computes AUROC and Expected Calibration Error from the eval results.
+- `evaluater.py` — runs the full 28-question benchmark against the backend and saves results to CSV/JSON.
+- `analysis.py` — computes AUROC and Expected Calibration Error from the eval results.
 
 ## Running it locally
 
@@ -53,8 +53,8 @@ The model's self-reported confidence is essentially uninformative. Its real inte
 3. Open `index.html` in your browser.
 4. (Optional) Run the evaluation suite:
    ```
-   python eval_runner.py
-   python run_analysis.py
+   python evaluater.py
+   python analysis.py
    ```
 
 Requires an NVIDIA GPU with CUDA support. Tested on an RTX 4070 with 8GB VRAM running Qwen2.5-1.5B-Instruct.
