@@ -68,4 +68,3 @@ Requires an NVIDIA GPU with CUDA support. Tested on an RTX 4070 with 8GB VRAM ru
 ## Why this matters
 
 Confidently wrong AI output is a real, active problem in deploying LLMs safely. This project demonstrates, with real measured data, that a model's own claimed confidence can't be trusted, but the signals already present inside the model can tell a more honest story, if you know how to look.
-```
